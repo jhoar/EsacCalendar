@@ -15,18 +15,15 @@ import org.apache.commons.cli.ParseException;
 public class EsacCal {
 		
 	public static void main(String [] args) throws Exception {
-
 		EsacCal c = new EsacCal();
 		c.run(args);
-		
-		
 	}
 
 	private void run(String[] args) throws Exception {
 
 		int year;
 		
-		Option helpOpt = Option.builder("help").argName("help").hasArg(false).desc("You're reading this. Congratulations.").build();
+		Option helpOpt = Option.builder("help").argName("help").hasArg(false).desc("Help.").build();
 		Option holOpt = Option.builder("holidays").argName("holidays").hasArg(true).desc("Name of Holiday file, optional, if omitted will look for holidays.txt. In the worse case it will assume no holidays. Bad luck!").build();
 		Option yearOpt = Option.builder("year").argName("year").hasArg(true).desc("Year of calendar, if omitted will assume next year").build();
 		Option templateOpt = Option.builder("template").argName("template").hasArg(true).desc("Name of calendar template file (XLSX). If omitted it will look for EsacCalendarTemplate.xlsx. If that is not found, computer says no.").build();
@@ -38,8 +35,7 @@ public class EsacCal {
 		opts.addOption(yearOpt);
 		opts.addOption(templateOpt);
 		opts.addOption(outputOpt);
-		
-		
+
 		CommandLine line = null;
 				
 		CommandLineParser parser = new DefaultParser();
@@ -52,12 +48,14 @@ public class EsacCal {
 			System.err.println( "Parsing failed.  Reason: " + exp.getMessage() );
 		}
 
-		if(line.getOptions() != null && line.getOptions().length == 0) {
-			HelpFormatter formatter = new HelpFormatter();
-			formatter.printHelp( "esacCalGen.jar", opts );
-		}
-		
-		if(line.hasOption("help")) {
+        if (line.getOptions().length != 0) {
+			// Have a valid set of options parsed
+        } else {
+            HelpFormatter formatter = new HelpFormatter();
+            formatter.printHelp( "esacCalGen.jar", opts );
+        }
+
+        if(line.hasOption("help")) {
 			HelpFormatter formatter = new HelpFormatter();
 			formatter.printHelp( "esacCalGen.jar", opts );
 			System.exit(2);
@@ -157,8 +155,6 @@ public class EsacCal {
 		excel.generateCalendar(grid, year, outputStr);
 
 		System.out.println("\"ALL DONE\"");
-
-		
 	}
 
 	private boolean checkFile(String fileName) {
