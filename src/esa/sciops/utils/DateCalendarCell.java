@@ -4,6 +4,8 @@ import java.time.LocalDate;
 import java.time.temporal.TemporalField;
 import java.time.temporal.WeekFields;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFColor;
@@ -13,6 +15,8 @@ import org.apache.poi.xssf.usermodel.XSSFColor;
  * @author johnhoar
  *
  */
+@Getter
+@Setter
 public class DateCalendarCell implements CalendarCell {
 	
 	private final LocalDate date;
@@ -40,82 +44,6 @@ public class DateCalendarCell implements CalendarCell {
 		if (dayOfWeek == DayOfWeek.SATURDAY || dayOfWeek == DayOfWeek.SUNDAY) {
 			weekend = true;
 		}
-	}
-
-	public boolean isPrintWeekNum() {
-		return printWeekNum;
-	}
-
-	public void setPrintWeekNum(boolean printWeekNum) {
-		this.printWeekNum = printWeekNum;
-	}
-
-	public boolean isHomeHoliday() {
-		return homeHoliday;
-	}
-
-	public void setHomeHoliday(boolean homeHoliday) {
-		this.homeHoliday = homeHoliday;
-	}
-
-	public boolean isSlot1Holiday() {
-		return slot1Holiday;
-	}
-
-	public void setSlot1Holiday(boolean slot1Holiday) {
-		this.slot1Holiday = slot1Holiday;
-	}
-
-	public boolean isSlot2Holiday() {
-		return slot2Holiday;
-	}
-
-	public void setSlot2Holiday(boolean slot2Holiday) {
-		this.slot2Holiday = slot2Holiday;
-	}
-
-	public boolean isSlot3Holiday() {
-		return slot3Holiday;
-	}
-
-	public void setSlot3Holiday(boolean slot3Holiday) {
-		this.slot3Holiday = slot3Holiday;
-	}
-
-	public boolean isFirstCell() {
-		return firstCell;
-	}
-
-	public void setFirstCell(boolean firstCell) {
-		this.firstCell = firstCell;
-	}
-
-	public boolean isLastCell() {
-		return lastCell;
-	}
-
-	public void setLastCell(boolean lastCell) {
-		this.lastCell = lastCell;
-	}
-
-	public boolean isWeekend() {
-		return weekend;
-	}
-	
-	public boolean isFirstMonthOfQuarter() {
-		return firstMonthOfQuarter;
-	}
-	
-	public void setFirstMonthOfQuarter(boolean b) {
-		this.firstMonthOfQuarter = b;
-	}
-
-	public boolean isLastMonthOfQuarter() {
-		return lastMonthOfQuarter;
-	}
-	
-	public void setLastMonthOfQuarter(boolean b) {
-		this.lastMonthOfQuarter = b;		
 	}
 
 	// Day of Month offst in 3x7 grid of spreadsheet cells

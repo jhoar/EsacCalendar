@@ -13,8 +13,8 @@ public class CalendarGrid {
 	int nGridRows;
 	final int nGridCols = 37; // the number of columns needed to house a calendar that always has the first column corresponding to a Monday
 
-	private CalendarCell[][] calendarGrid; // Grid of calendar cells; this does not map directly to Excel cells since rows can be used to separate years
-	private Map<LocalDate, Set<String>> hols = new HashMap<>();
+	private final CalendarCell[][] calendarGrid; // Grid of calendar cells; this does not map directly to Excel cells since rows can be used to separate years
+	private final Map<LocalDate, Set<String>> hols = new HashMap<>();
 	
 	public CalendarGrid(int startYear, Month startMonth, int nMonths, String holidayInput) {
 

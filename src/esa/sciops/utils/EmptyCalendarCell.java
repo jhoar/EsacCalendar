@@ -1,26 +1,14 @@
 package esa.sciops.utils;
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.poi.ss.usermodel.CellStyle;
 
+@Getter
+@Setter
 public class EmptyCalendarCell implements CalendarCell {
 	
 	private boolean firstCell = false;
 	private boolean lastCell = false;
-
-	public boolean isFirstCell() {
-		return firstCell;
-	}
-
-	public void setFirstCell(boolean firstCell) {
-		this.firstCell = firstCell;
-	}
-
-	public boolean isLastCell() {
-		return lastCell;
-	}
-
-	public void setLastCell(boolean lastCell) {
-		this.lastCell = lastCell;
-	}
 
 	public String toString() {
 		return "Nothing";
