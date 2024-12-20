@@ -1,8 +1,11 @@
 package esa.sciops.utils;
+import lombok.Builder;
+import lombok.Getter;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.xssf.usermodel.XSSFColor;
+
 
 
 /**
@@ -10,23 +13,26 @@ import org.apache.poi.xssf.usermodel.XSSFColor;
  * @author johnhoar
  *
  */
+@Builder
+@Getter
 public class ExcelStyle {
 
-	public short TopBorderStyle = CellStyle.BORDER_NONE;
-	public short BottomBorderStyle = CellStyle.BORDER_NONE;
-	public short LeftBorderStyle = CellStyle.BORDER_NONE;
-	public short RightBorderStyle = CellStyle.BORDER_NONE;
+	@Builder.Default private final short topBorderStyle = CellStyle.BORDER_NONE;
+	@Builder.Default private final short bottomBorderStyle = CellStyle.BORDER_NONE;
+	@Builder.Default private final short leftBorderStyle = CellStyle.BORDER_NONE;
+	@Builder.Default private final short rightBorderStyle = CellStyle.BORDER_NONE;
 
-	public IndexedColors TopBorderColour = IndexedColors.BLACK;
-	public IndexedColors BottomBorderColour = IndexedColors.BLACK;
-	public IndexedColors LeftBorderColour = IndexedColors.BLACK;
-	public IndexedColors RightBorderColour = IndexedColors.BLACK;
+	@Builder.Default private final IndexedColors topBorderColour = IndexedColors.BLACK;
+	@Builder.Default private final IndexedColors bottomBorderColour = IndexedColors.BLACK;
+	@Builder.Default private final IndexedColors leftBorderColour = IndexedColors.BLACK;
+	@Builder.Default private final IndexedColors rightBorderColour = IndexedColors.BLACK;
 
-	public XSSFColor FillColour = Styler.WHITE;
+	@Builder.Default private final XSSFColor fillColour = Styler.WHITE;
 
-	public short hAlign = CellStyle.ALIGN_CENTER;
-	public short vAlign = CellStyle.VERTICAL_CENTER;
-	public Font font;
+	@Builder.Default private final short hAlign = CellStyle.ALIGN_CENTER;
+	@Builder.Default private final short vAlign = CellStyle.VERTICAL_CENTER;
+
+	private final Font font;
 
 	@Override
 	public int hashCode() {
@@ -34,23 +40,23 @@ public class ExcelStyle {
 		int result = 1;
 		result = prime
 				* result
-				+ ((BottomBorderColour == null) ? 0 : BottomBorderColour
+				+ ((bottomBorderColour == null) ? 0 : bottomBorderColour
 						.hashCode());
-		result = prime * result + BottomBorderStyle;
+		result = prime * result + bottomBorderStyle;
 		result = prime * result
-				+ ((FillColour == null) ? 0 : FillColour.hashCode());
+				+ ((fillColour == null) ? 0 : fillColour.hashCode());
 		result = prime
 				* result
-				+ ((LeftBorderColour == null) ? 0 : LeftBorderColour.hashCode());
-		result = prime * result + LeftBorderStyle;
+				+ ((leftBorderColour == null) ? 0 : leftBorderColour.hashCode());
+		result = prime * result + leftBorderStyle;
 		result = prime
 				* result
-				+ ((RightBorderColour == null) ? 0 : RightBorderColour
+				+ ((rightBorderColour == null) ? 0 : rightBorderColour
 						.hashCode());
-		result = prime * result + RightBorderStyle;
+		result = prime * result + rightBorderStyle;
 		result = prime * result
-				+ ((TopBorderColour == null) ? 0 : TopBorderColour.hashCode());
-		result = prime * result + TopBorderStyle;
+				+ ((topBorderColour == null) ? 0 : topBorderColour.hashCode());
+		result = prime * result + topBorderStyle;
 		result = prime * result + ((font == null) ? 0 : font.hashCode());
 		result = prime * result + hAlign;
 		result = prime * result + vAlign;
@@ -66,36 +72,47 @@ public class ExcelStyle {
 		if (getClass() != obj.getClass())
 			return false;
 		ExcelStyle other = (ExcelStyle) obj;
-		if (BottomBorderColour != other.BottomBorderColour)
+		if (bottomBorderColour != other.bottomBorderColour)
 			return false;
-		if (BottomBorderStyle != other.BottomBorderStyle)
+		if (bottomBorderStyle != other.bottomBorderStyle)
 			return false;
-		if (FillColour == null) {
-			if (other.FillColour != null)
+
+		if (fillColour == null) {
+			if (other.fillColour != null)
 				return false;
-		} else if (!FillColour.equals(other.FillColour))
+		} else if (!fillColour.equals(other.fillColour))
 			return false;
-		if (LeftBorderColour != other.LeftBorderColour)
+
+		if (leftBorderColour != other.leftBorderColour)
 			return false;
-		if (LeftBorderStyle != other.LeftBorderStyle)
+
+		if (leftBorderStyle != other.leftBorderStyle)
 			return false;
-		if (RightBorderColour != other.RightBorderColour)
+
+		if (rightBorderColour != other.rightBorderColour)
 			return false;
-		if (RightBorderStyle != other.RightBorderStyle)
+
+		if (rightBorderStyle != other.rightBorderStyle)
 			return false;
-		if (TopBorderColour != other.TopBorderColour)
+
+		if (topBorderColour != other.topBorderColour)
 			return false;
-		if (TopBorderStyle != other.TopBorderStyle)
+
+		if (topBorderStyle != other.topBorderStyle)
 			return false;
+
 		if (font == null) {
 			if (other.font != null)
 				return false;
 		} else if (!font.equals(other.font))
 			return false;
+
 		if (hAlign != other.hAlign)
 			return false;
+
 		if (vAlign != other.vAlign)
 			return false;
+
 		return true;
 	}
 	

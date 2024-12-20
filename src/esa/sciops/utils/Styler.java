@@ -10,10 +10,12 @@ import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
-
+/**
+ * Encapsulates all style information to apply to a cell in an Excel spreadsheet
+ */
 public class Styler {
 
-	private static Map<ExcelStyle, XSSFCellStyle> styleMap = new HashMap<ExcelStyle, XSSFCellStyle>();
+	private static final Map<ExcelStyle, XSSFCellStyle> styleMap = new HashMap<>();
 	
 	private static boolean init = false;
 	
@@ -23,57 +25,11 @@ public class Styler {
 		calendar = cal;
 		initialise(calendar.getWorkbook());
 	}
-	
-	/**
-	 * Set the cell style for a given cell
-	 * @param wb Workbook
-	 * @param sheetId Sheet number
-	 * @param r row 
-	 * @param c column
-	 * @param top Top border line type
-	 * @param bottom Bottom border line type
-	 * @param left Left border line type
-	 * @param right Right border line type
-	 * @param colour Fill colour of the cell
-	 * @param halign Horizontal text alignment
-	 * @param valign Vertical text alignment
-	 */
-	public void setStyle(int r, int c, short top, short bottom, short left, short right, XSSFColor colour, short halign, short valign) {
 
+	public void setStyle(int r, int c, ExcelStyle style) {
 		XSSFCell cell = calendar.getCell(r, c);
-		
-		ExcelStyle style = buildStyle(top, bottom, left, right, colour, halign,	valign, null);
-		
 		XSSFCellStyle estyle = getOrCreateStyle(calendar.getWorkbook(), style);
-	    
-	    cell.setCellStyle(estyle);
-
-	}
-
-	/**
-	 * Set the cell style for a given cell, including a font definition
-	 * @param wb Workbook
-	 * @param sheetId Sheet number
-	 * @param r row 
-	 * @param c column
-	 * @param top Top border line type
-	 * @param bottom Bottom border line type
-	 * @param left Left border line type
-	 * @param right Right border line type
-	 * @param colour Fill colour of the cell
-	 * @param halign Horizontal text alignment
-	 * @param valign Vertical text alignment
-	 */
-	public void setStyle(int r, int c, short top, short bottom, short left, short right, XSSFColor colour, short halign, short valign, Font font) {
-		
-		XSSFCell cell = calendar.getCell(r, c);
-		
-		ExcelStyle style = buildStyle(top, bottom, left, right, colour, halign,	valign, font);
-		
-		XSSFCellStyle estyle = getOrCreateStyle(calendar.getWorkbook(), style);
-	    
-	    cell.setCellStyle(estyle);
-
+		cell.setCellStyle(estyle);
 	}
 
 	public Font getDoMFont() {
@@ -88,7 +44,6 @@ public class Styler {
 		return WOYFONT;
 	}
 
-	
 	private void initialise(XSSFWorkbook wb) {
 		
 		if(init) {
@@ -111,26 +66,6 @@ public class Styler {
 		init = true;
 
 	}
-			
-	private static ExcelStyle buildStyle(short top, short bottom, short left,
-			short right, XSSFColor colour, short halign, short valign, Font font) {
-		// Work around crappy limitation in Excel in number of styles in a sheet (4000)
-		ExcelStyle style = new ExcelStyle();
-		style.TopBorderStyle = top;
-		style.TopBorderColour = IndexedColors.BLACK;
-		style.BottomBorderStyle = bottom;
-		style.BottomBorderColour = IndexedColors.BLACK;
-		style.LeftBorderStyle = left;
-		style.LeftBorderColour = IndexedColors.BLACK;
-		style.RightBorderStyle = right;
-		style.RightBorderColour = IndexedColors.BLACK;
-
-		style.FillColour = colour;
-		style.hAlign = halign;
-		style.vAlign = valign;
-		style.font = font;
-		return style;
-	}
 	
 	private static XSSFCellStyle getOrCreateStyle(XSSFWorkbook wb, ExcelStyle style) {
 		
@@ -138,25 +73,25 @@ public class Styler {
 		if (s == null) {
 			s = wb.createCellStyle();
 			
-			s.setBorderTop(style.TopBorderStyle);
-			s.setTopBorderColor(style.TopBorderColour.getIndex());
+			s.setBorderTop(style.getTopBorderStyle());
+			s.setTopBorderColor(style.getTopBorderColour().getIndex());
 			
-			s.setBorderBottom(style.BottomBorderStyle);
-			s.setBottomBorderColor(style.BottomBorderColour.getIndex());
+			s.setBorderBottom(style.getBottomBorderStyle());
+			s.setBottomBorderColor(style.getBottomBorderColour().getIndex());
 
-			s.setBorderLeft(style.LeftBorderStyle);
-			s.setLeftBorderColor(style.LeftBorderColour.getIndex());
+			s.setBorderLeft(style.getLeftBorderStyle());
+			s.setLeftBorderColor(style.getLeftBorderColour().getIndex());
 			
-			s.setBorderRight(style.RightBorderStyle);
-			s.setRightBorderColor(style.RightBorderColour.getIndex());
+			s.setBorderRight(style.getRightBorderStyle());
+			s.setRightBorderColor(style.getRightBorderColour().getIndex());
 			
-			s.setFillBackgroundColor(style.FillColour);
-			s.setFillForegroundColor(style.FillColour);
+			s.setFillBackgroundColor(style.getFillColour());
+			s.setFillForegroundColor(style.getFillColour());
 			s.setFillPattern(CellStyle.SOLID_FOREGROUND);
 			
-			s.setAlignment(style.hAlign);
-			s.setVerticalAlignment(style.vAlign);
-			s.setFont(style.font);
+			s.setAlignment(style.getHAlign());
+			s.setVerticalAlignment(style.getVAlign());
+			s.setFont(style.getFont());
 			
 			styleMap.put(style, s);
 
@@ -177,5 +112,4 @@ public class Styler {
 	private Font DOYFONT;
 	private Font WOYFONT;
 
-	
 }

@@ -18,29 +18,26 @@ public class ExcelCalendar {
     private XSSFSheet sheet;
     
 	public void openTemplate(String templateFilename) throws Exception {
-		
-	    FileInputStream fis = new FileInputStream(templateFilename);
-	    try {
-	       wb = new XSSFWorkbook(fis);
-	    } finally {
-	        fis.close();
-	    }
+
+        try (FileInputStream fis = new FileInputStream(templateFilename)) {
+            wb = new XSSFWorkbook(fis);
+        }
 	    
 	    sheet = wb.getSheetAt(0);
 	}
 	
 	public void generateCalendar(CalendarGrid grid, int year, String outputFilename) throws Exception {
 	
-		int xlsRows[] = {5,12,19,27,34,41,49,56,63,71,78,85,93,100,107};
-		int xlsRowHeight[] = {400,300,460,460,460,300,320};
+		int[] xlsRows = {5,12,19,27,34,41,49,56,63,71,78,85,93,100,107};
+		int[] xlsRowHeight = {400,300,460,460,460,300,320};
 		int rootColumn = 5;
 
 	    // dump row heights
-	    for(int i = 0; i < xlsRows.length; i++ ) {
-	    	for(int j = 0; j < xlsRowHeight.length; j++) {
-	    		sheet.getRow(xlsRows[i] + j - 1).setHeight((short)xlsRowHeight[j]);
-	    	}
-	    }
+        for (int xlsRow : xlsRows) {
+            for (int j = 0; j < xlsRowHeight.length; j++) {
+                sheet.getRow(xlsRow + j - 1).setHeight((short) xlsRowHeight[j]);
+            }
+        }
 				
 		// Configure margins and print setup
 		sheet.setMargin(Sheet.LeftMargin, 0.0);

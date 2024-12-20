@@ -2,6 +2,7 @@ package esa.sciops.utils;
 
 import java.io.File;
 import java.time.LocalDate;
+import java.time.Month;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -13,7 +14,7 @@ import org.apache.commons.cli.ParseException;
 
 public class EsacCal {
 		
-	public static void main(String args[]) throws Exception {
+	public static void main(String [] args) throws Exception {
 
 		EsacCal c = new EsacCal();
 		c.run(args);
@@ -51,7 +52,7 @@ public class EsacCal {
 			System.err.println( "Parsing failed.  Reason: " + exp.getMessage() );
 		}
 
-		if(line.getOptions().length == 0) {
+		if(line.getOptions() != null && line.getOptions().length == 0) {
 			HelpFormatter formatter = new HelpFormatter();
 			formatter.printHelp( "esacCalGen.jar", opts );
 		}
@@ -87,24 +88,24 @@ public class EsacCal {
 			
 			holsStr = line.getOptionValue("holidays");
 			if (!checkFile(holsStr)) {
-				System.out.println("OK, let's look for holidays.txt");
+				System.out.println("Locating holidays file");
 				if (checkFile("holidays.txt")) {
 					holsStr = "holidays.txt";
 					System.out.println("Using holiday file:" + holsStr);
 				} else {
-					System.out.println("No holidays for you!");
+					System.out.println("No holidays file found!");
 				}
 			} else {
 				System.out.println("Using holiday file:" + holsStr);
 			}
 			
 		} else { 
-			System.out.println("OK, let's look for holidays.txt");
+			System.out.println("Locating holidays file holidays.txt");
 			if (checkFile("holidays.txt")) {
 				holsStr = "holidays.txt";
 				System.out.println("Using holiday file:" + holsStr);
 			} else {
-				System.out.println("No holidays for you!");
+				System.out.println("No holidays file found");
 			}
 		}
 		
@@ -114,29 +115,29 @@ public class EsacCal {
 			
 			templateStr = line.getOptionValue("template");
 			if (!checkFile(templateStr)) {
-				System.out.println("OK, let's look for EsacCalendarTemplate.xlsx");
+				System.out.println("Locating template file");
 				if (checkFile("EsacCalendarTemplate.xlsx")) {
 					templateStr = "EsacCalendarTemplate.xlsx";
 					System.out.println("Using template file:" + templateStr);
 				} else {
-					System.out.println("Look, I can't work with nothing!");
+					System.out.println("No template file, aborting");
 					System.exit(1);
 				}
 			} else {
 				System.out.println("Using template file:" + templateStr);
 			}
 		} else { 
-			System.out.println("OK, let's look for EsacCalendarTemplate.xlsx");
+			System.out.println("Locating template file EsacCalendarTemplate.xlsx");
 			if (checkFile("EsacCalendarTemplate.xlsx")) {
 				templateStr = "EsacCalendarTemplate.xlsx";
 				System.out.println("Using template file:" + templateStr);
 			} else {
-				System.out.println("Look, I can't work with nothing!");
+				System.out.println("No template file, aborting");
 				System.exit(1);
 			}
 		}
 
-		String outputStr = null;
+		String outputStr;
 		
 		if(line.hasOption("output")) {
 			
@@ -146,13 +147,11 @@ public class EsacCal {
 		} else { 
 	
 			outputStr = "ESAC-Calendar-" + year + "-" + (year + 1) + ".xlsx";
-			System.out.println("Silent type, eh? Well I'll write the calendar to " + outputStr);
+			System.out.println("Output calendar to " + outputStr);
 			
 		}
 
-		CalendarGrid grid = new CalendarGrid();
-		grid.generateGrid(year, holsStr);
-		
+		CalendarGrid grid = new CalendarGrid(year, Month.JANUARY, 15, holsStr);
 		ExcelCalendar excel = new ExcelCalendar();
 		excel.openTemplate(templateStr);
 		excel.generateCalendar(grid, year, outputStr);
@@ -164,11 +163,7 @@ public class EsacCal {
 
 	private boolean checkFile(String fileName) {
 		File c = new File(fileName);
-		if(c.exists() && c.isFile()) {
-			return true;
-		} else {
-			return false;
-		}
+        return c.exists() && c.isFile();
 	}
 
 }

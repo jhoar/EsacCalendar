@@ -6,75 +6,78 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Scanner;
-import java.util.Set;
+import java.util.*;
 
 public class CalendarGrid {
 
-	int nGridRows = 15; // 1.25 years
-	int nGridCols = 37; // the number of columns needed to house a calendar that always has the first column corresponding to a DayOfWeek
+	int nGridRows;
+	final int nGridCols = 37; // the number of columns needed to house a calendar that always has the first column corresponding to a Monday
 
-	CalendarCell calendarGrid[][] = new CalendarCell[nGridRows][nGridCols];
+	private CalendarCell[][] calendarGrid; // Grid of calendar cells; this does not map directly to Excel cells since rows can be used to separate years
+	private Map<LocalDate, Set<String>> hols = new HashMap<>();
 	
-	Map<LocalDate, Set<String>> hols = new HashMap<LocalDate, Set<String>>();
-	
-	public void generateGrid(int startYear, String holidayInput) {
-		
-		int currentRow = 0;
-		boolean leapYear;
-		Month [] quarter = new Month[]{Month.JANUARY, Month.FEBRUARY, Month.MARCH};
-		
+	public CalendarGrid(int startYear, Month startMonth, int nMonths, String holidayInput) {
+
+		nGridRows = nMonths;
+		calendarGrid = new CalendarCell[nGridRows][nGridCols]; // Grid of calendar cells; this does not map directly to Excel cells since rows can be used to separate years
+
 		if (holidayInput != null) {
 			readHolidays(holidayInput);
 		}
-		
-		leapYear = LocalDate.of(startYear, Month.JANUARY, 1).isLeapYear();
-		currentRow = generateRows(startYear, Month.values(), currentRow, leapYear);
-		
-		startYear++;
-		
-		leapYear = LocalDate.of(startYear, Month.JANUARY, 1).isLeapYear();
-		currentRow = generateRows(startYear, quarter, currentRow, leapYear);
-		
-	}
 
-	private int generateRows(int year, Month[] months, int currentRow, boolean leapYear) {
+		int monthValue = startMonth.getValue();
+		int yearValue = startYear;
 
-		for(Month month: months) {
+		// Process every month = row
+		for (int currentRow = 0; currentRow < nMonths; currentRow++ ) {
 
-			LocalDate date = LocalDate.of(year, month, 1);
-			
-			DayOfWeek dayOfWeek = date.getDayOfWeek();
+			Month month = Month.of(monthValue);
+
+			LocalDate firstDateOfMonth = LocalDate.of(yearValue, monthValue, 1);
+			DayOfWeek dayOfWeek = firstDateOfMonth.getDayOfWeek();
+			boolean leapYear = firstDateOfMonth.isLeapYear();
+
+			// Number of days of the month, accounting for leap years
 			int nDays = month.length(leapYear);
-			
-			int firstDayOfMonthInGrid = dayOfWeek.ordinal();
-			int lastDayOfMonthInGrid = firstDayOfMonthInGrid + nDays - 1;
-						
-			for (int i = 0; i < nGridCols; i++) {
-				
-				// Is a calendar day
-				if (i >= firstDayOfMonthInGrid && i <= lastDayOfMonthInGrid) {
-					
-					LocalDate ldate = LocalDate.of(year, month, i - firstDayOfMonthInGrid + 1);
-					
-					DateCalendarCell cell = new DateCalendarCell(ldate);
-					calendarGrid[currentRow][i] = cell;
 
-					if (i == firstDayOfMonthInGrid || ldate.getDayOfWeek() == DayOfWeek.MONDAY) {
+			// The calendar always has Monday as the first column, so calculate the column index from getValue()
+			int firstDayOfMonthInGrid = dayOfWeek.getValue() - 1;
+
+			// Calculate the index of the last column in that month (nDays - 1)
+			int lastDayOfMonthInGrid = firstDayOfMonthInGrid + nDays - 1;
+
+			// Set up rolling date
+			LocalDate ldate = LocalDate.from(firstDateOfMonth);
+
+			// Process every column, which may or may not be a real day in the calendar
+			for (int currentCol = 0; currentCol < nGridCols; currentCol++) {
+
+				// Check if the cell is a real calendar day
+				if (currentCol >= firstDayOfMonthInGrid && currentCol <= lastDayOfMonthInGrid) {
+
+					// Generate a Calendar cell
+					DateCalendarCell cell = new DateCalendarCell(ldate);
+
+					// If the cell is the first of the month or a Monday, we should enable printing the week number
+					if (currentCol == firstDayOfMonthInGrid || ldate.getDayOfWeek() == DayOfWeek.MONDAY) {
 						cell.setPrintWeekNum(true);
 					}
 
-					if ((i == firstDayOfMonthInGrid && i != 0)) {
+					// If this is the first day of the month but NOT the first column in the grid set the field
+					// The formatting of the first calendar column is managed in the XLS template
+					// TODO Maybe the formatting of the cell should be done entirely here and not split
+					if ((currentCol == firstDayOfMonthInGrid && currentCol != 0)) {
 						cell.setFirstCell(true);
 					}
 
-					if (i == lastDayOfMonthInGrid && i != nGridCols - 1) {
+					// If this is the last day of the month but NOT the last column in the grid set the field
+					// The formatting of the last calendar column is managed in the XLS template
+					// TODO Maybe the formatting of the cell should be done entirely here and not split
+					if (currentCol == lastDayOfMonthInGrid && currentCol != nGridCols - 1) {
 						cell.setLastCell(true);
 					}
-					
+
+					// Determine if this is the first or last month of a (year) quarter
 					int m = (month.getValue() - 1) % 3;
 					if (m == 0) {
 						cell.setFirstMonthOfQuarter(true);
@@ -82,84 +85,80 @@ public class CalendarGrid {
 					if (m == 2) {
 						cell.setLastMonthOfQuarter(true);
 					}
-					
+
+					// Check against the holidays and set the slot aettings
 					Set<String> set = hols.get(ldate);
 					if (set != null) {
-						for(String site: set) {
-							if (site.equalsIgnoreCase("HOME")) {
+						for(String slot: set) {
+							if (slot.equalsIgnoreCase("HOME")) {
 								cell.setHomeHoliday(true);
 							}
-							if (site.equalsIgnoreCase("SLOT1")) {
+							if (slot.equalsIgnoreCase("SLOT1")) {
 								cell.setSlot1Holiday(true);
 							}
-							if (site.equalsIgnoreCase("SLOT2")) {
+							if (slot.equalsIgnoreCase("SLOT2")) {
 								cell.setSlot2Holiday(true);
 							}
-							if (site.equalsIgnoreCase("SLOT3")) {
+							if (slot.equalsIgnoreCase("SLOT3")) {
 								cell.setSlot3Holiday(true);
 							}
 						}
 					}
 
-					// Set Euclid specific items
-					// SOPS
+					// Assign the cell to the grid
+					calendarGrid[currentRow][currentCol] = cell;
 
-					//
+					// Increment date
+					ldate = ldate.plusDays(1);
 
 				} else {
-					
+
 					EmptyCalendarCell cell = new EmptyCalendarCell();
-					
-					if (i == 0) {
+
+					// For non-calendar cells we just want to know if this is the first of last cells in the grid
+					if (currentCol == 0) {
 						cell.setFirstCell(true);
 					}
 
-					if (i == nGridCols - 1) {
+					if (currentCol == nGridCols - 1) {
 						cell.setLastCell(true);
 					}
 
-					calendarGrid[currentRow][i] = cell;
+					calendarGrid[currentRow][currentCol] = cell;
 				}
 
 			}
-				
-			// Finally move to next row;
-			currentRow++;
+
+			// Check if we roll into next year
+			if (monthValue == Month.DECEMBER.getValue()) {
+				monthValue = Month.JANUARY.getValue();
+				yearValue++;
+			} else {
+				monthValue++;
+			}
 		}
-		
-		return currentRow;
-		
 	}
 
 	private void readHolidays(String filename) {
 
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-		
-		Scanner sc = null;
 
-        try {
-            sc = new Scanner(new FileReader(filename));
+        try (Scanner sc = new Scanner(new FileReader(filename))) {
 
             while (sc.hasNextLine()) {
                 String text = sc.nextLine();
                 String[] strs = text.split(" ", 2);
 
                 LocalDate date = LocalDate.parse(strs[1], formatter);
-                
-                Set<String> set = hols.get(date);
-                if (set == null) {
-                	set = new HashSet<String>();
-                	hols.put(date, set);
-                }
+
+                Set<String> set = hols.computeIfAbsent(date, k -> new HashSet<>());
                 set.add(strs[0]);
-              
+
             }
 
         } catch (FileNotFoundException e) {
             System.out.println("Input file not found");
             System.exit(1);
-        } finally {
-            sc.close();
         }
  
 	}
@@ -176,6 +175,4 @@ public class CalendarGrid {
 		return nGridCols;
 	}
 
-	
-	
 }

@@ -15,7 +15,7 @@ import org.apache.poi.xssf.usermodel.XSSFColor;
  */
 public class DateCalendarCell implements CalendarCell {
 	
-	private LocalDate date;
+	private final LocalDate date;
 	private boolean printWeekNum = false;
 	private boolean homeHoliday = false;
 	private boolean slot1Holiday = false;
@@ -27,9 +27,13 @@ public class DateCalendarCell implements CalendarCell {
 	private boolean firstMonthOfQuarter = false;
 	private boolean lastMonthOfQuarter = false;
 
+	public String toString() {
+		return date.toString();
+	}
+
 	public DateCalendarCell(LocalDate ldate) {
 
-		date = ldate;
+		date = LocalDate.from(ldate);
 		
 		DayOfWeek dayOfWeek = date.getDayOfWeek();
 		
@@ -114,11 +118,15 @@ public class DateCalendarCell implements CalendarCell {
 		this.lastMonthOfQuarter = b;		
 	}
 
-
+	// Day of Month offst in 3x7 grid of spreadsheet cells
 	int DoMRoffset = 0;
 	int DoMCoffset = 1;
+
+	// Day of Year
 	int DoYRoffset = 1;
 	int DoYCoffset = 1;
+
+	// Week of Year
 	int WoYRoffset = 5;
 	int WoYCoffset = 0;
 	
@@ -128,317 +136,153 @@ public class DateCalendarCell implements CalendarCell {
 	@Override
 	public void renderCell(ExcelCalendar cal, Styler styler, int r, int c) {
 		
-		// Content
+		// Set the day of this month
 		XSSFCell DoMcell = cal.getCell(r + DoMRoffset, c + DoMCoffset);
 		DoMcell.setCellValue(date.getDayOfMonth());
-		
+
+		// Set the day of this year, properly formatted
 		XSSFCell DoYcell = cal.getCell(r + DoYRoffset, c + DoYCoffset);
 		String formatted = String.format("%03d", date.getDayOfYear());
 		DoYcell.setCellValue(formatted);
 
+		// Set the week of this year, if needed, and properly formatted
 		if (isPrintWeekNum()) {
 			XSSFCell WoYcell = cal.getCell(r + WoYRoffset, c + WoYCoffset);
 			TemporalField woy = WeekFields.ISO.weekOfWeekBasedYear(); 
 			WoYcell.setCellValue("W" + date.get(woy));
 		}
 				
-		short leftB;
-		short rightB;
-		short topB;
-		short bottomB;
+		// Set style, painting cell by cell...
 
-		// Borders, painting cell by cell...
 		// 0,0
-		if ( isFirstMonthOfQuarter() ) {
-			topB = CellStyle.BORDER_THIN;
-		} else {
-			topB = CellStyle.BORDER_THICK;
-		}
-		
-		bottomB = CellStyle.BORDER_NONE;
-		
-		if ( isFirstCell() ) {
-			leftB = CellStyle.BORDER_THICK;
-		} else {
-			leftB = CellStyle.BORDER_THIN;
-		}
-		
-		rightB = CellStyle.BORDER_NONE;
-		
-		styler.setStyle(r, c, topB, bottomB, leftB, rightB, homeHoliday(), CellStyle.ALIGN_CENTER, CellStyle.VERTICAL_CENTER );			
+		styler.setStyle(r, c, ExcelStyle.builder().
+				topBorderStyle(isFirstMonthOfQuarter() ? CellStyle.BORDER_THIN : CellStyle.BORDER_THICK).
+				leftBorderStyle(isFirstCell() ? CellStyle.BORDER_THICK : CellStyle.BORDER_THIN).
+				fillColour(homeHoliday()).
+				build());
 
-		
-		
 		// 0,1 DoM Text Style
-		if ( isFirstMonthOfQuarter() ) {
-			topB = CellStyle.BORDER_THIN;
-		} else {
-			topB = CellStyle.BORDER_THICK;
-		}
-		
-		bottomB = CellStyle.BORDER_NONE;
-		leftB = CellStyle.BORDER_NONE;
-		rightB = CellStyle.BORDER_NONE;
+        styler.setStyle(r, c + 1, ExcelStyle.builder().
+				topBorderStyle(isFirstMonthOfQuarter() ? CellStyle.BORDER_THIN : CellStyle.BORDER_THICK).
+				fillColour(homeHoliday()).
+				font(styler.getDoMFont()).
+				build());
 
-		styler.setStyle(r, c + 1, topB, bottomB, leftB, rightB, homeHoliday(), CellStyle.ALIGN_CENTER, CellStyle.VERTICAL_CENTER, styler.getDoMFont());
-
-
-		
 		// 0,2
-		if ( isFirstMonthOfQuarter() ) {
-			topB = CellStyle.BORDER_THIN;
-		} else {
-			topB = CellStyle.BORDER_THICK;
-		}
-		
-		bottomB = CellStyle.BORDER_NONE;
-		leftB = CellStyle.BORDER_NONE;
-		
-		if ( isLastCell() ) {
-			rightB = CellStyle.BORDER_THICK;
-		} else {
-			rightB = CellStyle.BORDER_THIN;
-		}
+		styler.setStyle(r, c + 2, ExcelStyle.builder().
+				topBorderStyle(isFirstMonthOfQuarter() ? CellStyle.BORDER_THIN : CellStyle.BORDER_THICK).
+				rightBorderStyle(isLastCell() ? CellStyle.BORDER_THICK : CellStyle.BORDER_THIN).
+				fillColour(homeHoliday()).
+				build());
 
-		styler.setStyle(r, c + 2, topB, bottomB, leftB, rightB, homeHoliday(), CellStyle.ALIGN_CENTER, CellStyle.VERTICAL_CENTER );
-	
-
-		
 		// 1,0
-		topB = CellStyle.BORDER_NONE;
-		bottomB = CellStyle.BORDER_NONE;
-		
-		if ( isFirstCell() ) {
-			leftB = CellStyle.BORDER_THICK;
-		} else {
-			leftB = CellStyle.BORDER_THIN;
-		}
-		
-		rightB = CellStyle.BORDER_NONE;
+		styler.setStyle(r + 1, c, ExcelStyle.builder().
+				leftBorderStyle(isFirstCell() ? CellStyle.BORDER_THICK : CellStyle.BORDER_THIN).
+				fillColour(homeHoliday()).
+				build());
 
-		styler.setStyle(r + 1, c, topB, bottomB, leftB, rightB, homeHoliday(), CellStyle.ALIGN_CENTER, CellStyle.VERTICAL_CENTER );
-	
-
-		
 		// 1,1 DoY Text Style
-		styler.setStyle(r + 1, c + 1, CellStyle.BORDER_NONE, CellStyle.BORDER_NONE, CellStyle.BORDER_NONE, CellStyle.BORDER_NONE, homeHoliday(), CellStyle.ALIGN_CENTER, CellStyle.VERTICAL_CENTER, styler.getDoYFont());
-		
+		styler.setStyle(r + 1, c + 1, ExcelStyle.builder().
+				fillColour(homeHoliday()).
+				font(styler.getDoYFont()).
+				build());
 
-		
 		// 1,2
-		topB = CellStyle.BORDER_NONE;
-		bottomB = CellStyle.BORDER_NONE;
-		leftB = CellStyle.BORDER_NONE;
-		
-		if ( isLastCell() ) {
-			rightB = CellStyle.BORDER_THICK;
-		} else {
-			rightB = CellStyle.BORDER_THIN;
-		}
+		styler.setStyle(r + 1, c + 2, ExcelStyle.builder().
+				rightBorderStyle(isLastCell() ? CellStyle.BORDER_THICK : CellStyle.BORDER_THIN).
+				fillColour(homeHoliday()).
+				build());
 
-		styler.setStyle(r + 1, c + 2, topB, bottomB, leftB, rightB, homeHoliday(), CellStyle.ALIGN_CENTER, CellStyle.VERTICAL_CENTER );
-		
-
-		
 		// 2,0
-		topB = CellStyle.BORDER_NONE;
-		bottomB = CellStyle.BORDER_NONE;
-		
-		if ( isFirstCell() ) {
-			leftB = CellStyle.BORDER_THICK;
-		} else {
-			leftB = CellStyle.BORDER_THIN;
-		}
-		
-		rightB = CellStyle.BORDER_NONE;
+		styler.setStyle(r + 2, c, ExcelStyle.builder().
+				leftBorderStyle(isFirstCell() ? CellStyle.BORDER_THICK : CellStyle.BORDER_THIN).
+				fillColour(slot1Holiday()).
+				build());
 
-		styler.setStyle(r + 2, c, topB, bottomB, leftB, rightB, slot1Holiday(), CellStyle.ALIGN_CENTER, CellStyle.VERTICAL_CENTER );
-
-
-		
 		// 2,1
-		styler.setStyle(r + 2, c + 1, CellStyle.BORDER_NONE, CellStyle.BORDER_NONE, CellStyle.BORDER_NONE, CellStyle.BORDER_NONE, slot1Holiday(), CellStyle.ALIGN_CENTER, CellStyle.VERTICAL_CENTER );
+		styler.setStyle(r + 2, c + 1, ExcelStyle.builder().
+				fillColour(slot1Holiday()).
+				build());
 
-
-		
 		// 2,2
-		topB = CellStyle.BORDER_NONE;
-		bottomB = CellStyle.BORDER_NONE;
-		leftB = CellStyle.BORDER_NONE;
-		
-		if ( isLastCell() ) {
-			rightB = CellStyle.BORDER_THICK;
-		} else {
-			rightB = CellStyle.BORDER_THIN;
-		}
+		styler.setStyle(r + 2, c + 2, ExcelStyle.builder().
+				rightBorderStyle(isLastCell() ? CellStyle.BORDER_THICK : CellStyle.BORDER_THIN).
+				fillColour(slot1Holiday()).
+				build());
 
-		styler.setStyle(r + 2, c + 2, topB, bottomB, leftB, rightB, slot1Holiday(), CellStyle.ALIGN_CENTER, CellStyle.VERTICAL_CENTER );
-
-	
-		
 		// 3,0
-		topB = CellStyle.BORDER_NONE;
-		bottomB = CellStyle.BORDER_NONE;
-		
-		if ( isFirstCell() ) {
-			leftB = CellStyle.BORDER_THICK;
-		} else {
-			leftB = CellStyle.BORDER_THIN;
-		}
-		
-		rightB = CellStyle.BORDER_NONE;
+		styler.setStyle(r + 3, c, ExcelStyle.builder().
+				leftBorderStyle(isFirstCell() ? CellStyle.BORDER_THICK : CellStyle.BORDER_THIN).
+				fillColour(slot2Holiday()).
+				build());
 
-		styler.setStyle(r + 3, c, topB, bottomB, leftB, rightB, slot2Holiday(), CellStyle.ALIGN_CENTER, CellStyle.VERTICAL_CENTER );
-
-	
-		
 		// 3,1
-		styler.setStyle(r + 3, c + 1, CellStyle.BORDER_NONE, CellStyle.BORDER_NONE, CellStyle.BORDER_NONE, CellStyle.BORDER_NONE, slot2Holiday(), CellStyle.ALIGN_CENTER, CellStyle.VERTICAL_CENTER );
+		styler.setStyle(r + 3, c + 1, ExcelStyle.builder().
+				fillColour(slot2Holiday()).
+				build());
 
-
-		
 		// 3,2
-		topB = CellStyle.BORDER_NONE;
-		bottomB = CellStyle.BORDER_NONE;
-		leftB = CellStyle.BORDER_NONE;
-		
-		if ( isLastCell() ) {
-			rightB = CellStyle.BORDER_THICK;
-		} else {
-			rightB = CellStyle.BORDER_THIN;
-		}
+		styler.setStyle(r + 3, c + 2, ExcelStyle.builder().
+				rightBorderStyle(isLastCell() ? CellStyle.BORDER_THICK : CellStyle.BORDER_THIN).
+				fillColour(slot2Holiday()).
+				build());
 
-		styler.setStyle(r + 3, c + 2, topB, bottomB, leftB, rightB, slot2Holiday(), CellStyle.ALIGN_CENTER, CellStyle.VERTICAL_CENTER );
-		
-
-		
 		// 4,0
-		topB = CellStyle.BORDER_NONE;
-		bottomB = CellStyle.BORDER_NONE;
-		
-		if ( isFirstCell() ) {
-			leftB = CellStyle.BORDER_THICK;
-		} else {
-			leftB = CellStyle.BORDER_THIN;
-		}
-		
-		rightB = CellStyle.BORDER_NONE;
+		styler.setStyle(r + 4, c, ExcelStyle.builder().
+				leftBorderStyle(isFirstCell() ? CellStyle.BORDER_THICK : CellStyle.BORDER_THIN).
+				fillColour(slot3Holiday()).
+				build());
 
-		styler.setStyle(r + 4, c, topB, bottomB, leftB, rightB, slot3Holiday(), CellStyle.ALIGN_CENTER, CellStyle.VERTICAL_CENTER );
-
-
-		
 		// 4,1
-		styler.setStyle(r + 4, c + 1, CellStyle.BORDER_NONE, CellStyle.BORDER_NONE, CellStyle.BORDER_NONE, CellStyle.BORDER_NONE, slot3Holiday(), CellStyle.ALIGN_CENTER, CellStyle.VERTICAL_CENTER );
+		styler.setStyle(r + 4, c + 1, ExcelStyle.builder().
+				fillColour(slot3Holiday()).
+				build());
 
-
-		
 		// 4,2
-		topB = CellStyle.BORDER_NONE;
-		bottomB = CellStyle.BORDER_NONE;
-		leftB = CellStyle.BORDER_NONE;
-		
-		if ( isLastCell() ) {
-			rightB = CellStyle.BORDER_THICK;
-		} else {
-			rightB = CellStyle.BORDER_THIN;
-		}
+		styler.setStyle(r + 4, c + 2, ExcelStyle.builder().
+				rightBorderStyle(isLastCell() ? CellStyle.BORDER_THICK : CellStyle.BORDER_THIN).
+				fillColour(slot3Holiday()).
+				build());
 
-		styler.setStyle(r + 4, c + 2, topB, bottomB, leftB, rightB, slot3Holiday(), CellStyle.ALIGN_CENTER, CellStyle.VERTICAL_CENTER );
-
-
-		
 		// 5,0 WoY Text Style
+		styler.setStyle(r + 5, c, ExcelStyle.builder().
+				leftBorderStyle(isFirstCell() ? CellStyle.BORDER_THICK : CellStyle.BORDER_THIN).
+				fillColour(homeHoliday()).
+				font(styler.getWoYFont()).
+				build());
 
-		topB = CellStyle.BORDER_NONE;
-		bottomB = CellStyle.BORDER_NONE;
-		
-		if ( isFirstCell() ) {
-			leftB = CellStyle.BORDER_THICK;
-		} else {
-			leftB = CellStyle.BORDER_THIN;
-		}
-		
-		rightB = CellStyle.BORDER_NONE;
-
-		styler.setStyle(r + 5, c, topB, bottomB, leftB, rightB, homeHoliday(), CellStyle.ALIGN_CENTER, CellStyle.VERTICAL_CENTER, styler.getWoYFont() );			
-
-	
-		
 		// 5,1
-		styler.setStyle(r + 5, c + 1, CellStyle.BORDER_NONE, CellStyle.BORDER_NONE, CellStyle.BORDER_NONE, CellStyle.BORDER_NONE, homeHoliday(), CellStyle.ALIGN_CENTER, CellStyle.VERTICAL_CENTER );
+		styler.setStyle(r + 5, c + 1, ExcelStyle.builder().
+				fillColour(homeHoliday()).
+				build());
 
-
-		
 		// 5,2
-		topB = CellStyle.BORDER_NONE;
-		bottomB = CellStyle.BORDER_NONE;
-		leftB = CellStyle.BORDER_NONE;
-		
-		if ( isLastCell() ) {
-			rightB = CellStyle.BORDER_THICK;
-		} else {
-			rightB = CellStyle.BORDER_THIN;
-		}
-
-		styler.setStyle(r + 5, c + 2, topB, bottomB, leftB, rightB, homeHoliday(), CellStyle.ALIGN_CENTER, CellStyle.VERTICAL_CENTER );
+		styler.setStyle(r + 5, c + 2, ExcelStyle.builder().
+				rightBorderStyle(isLastCell() ? CellStyle.BORDER_THICK : CellStyle.BORDER_THIN).
+				fillColour(homeHoliday()).
+				build());
 
 		// 6,0
-		topB = CellStyle.BORDER_NONE;
+		styler.setStyle(r + 6, c, ExcelStyle.builder().
+				bottomBorderStyle(isLastMonthOfQuarter() ? CellStyle.BORDER_THIN : CellStyle.BORDER_THICK).
+				leftBorderStyle(isFirstCell() ? CellStyle.BORDER_THICK : CellStyle.BORDER_THIN).
+				fillColour(homeHoliday()).
+				build());
 
-		if ( isLastMonthOfQuarter() ) {
-			bottomB = CellStyle.BORDER_THIN;
-		} else {
-			bottomB = CellStyle.BORDER_THICK;
-		}
-		
-		if ( isFirstCell() ) {
-			leftB = CellStyle.BORDER_THICK;
-		} else {
-			leftB = CellStyle.BORDER_THIN;
-		}
-		
-		rightB = CellStyle.BORDER_NONE;
-		
-		styler.setStyle(r + 6, c, topB, bottomB, leftB, rightB, homeHoliday(), CellStyle.ALIGN_CENTER, CellStyle.VERTICAL_CENTER );
-
-
-		
 		// 6,1
-		topB = CellStyle.BORDER_NONE;
+		styler.setStyle(r + 6, c + 1, ExcelStyle.builder().
+				bottomBorderStyle(isLastMonthOfQuarter() ? CellStyle.BORDER_THIN : CellStyle.BORDER_THICK).
+				fillColour(homeHoliday()).
+				font(styler.getDoMFont()).
+				build());
 
-		if ( isLastMonthOfQuarter() ) {
-			bottomB = CellStyle.BORDER_THIN;
-		} else {
-			bottomB = CellStyle.BORDER_THICK;
-		}
-
-		leftB = CellStyle.BORDER_NONE;
-		rightB = CellStyle.BORDER_NONE;
-
-		styler.setStyle(r + 6, c + 1, topB, bottomB, leftB, rightB, homeHoliday(), CellStyle.ALIGN_CENTER, CellStyle.VERTICAL_CENTER );
-
-
-		
 		// 6,2
-		topB = CellStyle.BORDER_NONE;
+		styler.setStyle(r + 6, c + 2, ExcelStyle.builder().
+				bottomBorderStyle(isLastMonthOfQuarter() ? CellStyle.BORDER_THIN : CellStyle.BORDER_THICK).
+				rightBorderStyle(isLastCell() ? CellStyle.BORDER_THICK : CellStyle.BORDER_THIN).
+				fillColour(homeHoliday()).
+				build());
 
-		if ( isLastMonthOfQuarter() ) {
-			bottomB = CellStyle.BORDER_THIN;
-		} else {
-			bottomB = CellStyle.BORDER_THICK;
-		}
-
-		leftB = CellStyle.BORDER_NONE;
-		
-		if ( isLastCell() ) {
-			rightB = CellStyle.BORDER_THICK;
-		} else {
-			rightB = CellStyle.BORDER_THIN;
-		}
-
-		styler.setStyle(r + 6, c + 2, topB, bottomB, leftB, rightB, homeHoliday(), CellStyle.ALIGN_CENTER, CellStyle.VERTICAL_CENTER );
-	
 	}
 	
 	/**
@@ -463,7 +307,7 @@ public class DateCalendarCell implements CalendarCell {
 	}
 
 	/**
-	 * Decide which colour to paint a cell if the cell is to be used for Slot1 (ESOC) holidays
+	 * Decide which colour to paint a cell if the cell is to be used for Slot2 (STSci) holidays
 	 * Since this is decided on a row-by-row basis, it should also manage Home (ESAC) holidays and weekends
 	 * @return A colour
 	 */
